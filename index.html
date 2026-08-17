@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title></title>
+</head>
+
+<body>
+  
+</body>
+
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>RAGE DEVIL — 5 Levels of Betrayal</title>
+<style>
+  :root{
+    --bg:#0b0a10;
+    --bg2:#141220;
+    --crimson:#e0263f;
+    --violet:#7c4dff;
+    --acid:#3dffa0;
+    --amber:#ffb020;
+    --ink:#f2eee6;
+    --ink-dim:#a89fb0;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none;}
+  html,body{
+    margin:0; padding:0; height:100%; overflow:hidden;
+    background:var(--bg);
+    font-family:'Courier New', monospace;
+    color:var(--ink);
+    touch-action:none;
+  }
+  body{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba(124,77,255,0.10), transparent 55%),
+      radial-gradient(ellipse at 80% 90%, rgba(224,38,63,0.12), transparent 55%),
+      var(--bg);
+  }
+  #wrap{
+    position:relative;
+    width:100vw; height:100vh;
+    max-width:100vw; max-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  canvas{
+    background:#141220;
+    display:block;
+    width:100vw;
+    height:auto;
+    max-height:100vh;
+    image-rendering:pixelated;
+    border-bottom:3px solid var(--crimson);
+  }
+  .pixel{
+    font-family:'Courier New', monospace;
+    letter-spacing:1px;
+  }
+  .glitch-title{
+    font-size:clamp(22px,7vw,42px);
+    font-weight:900;
+    color:var(--crimson);
+    text-shadow: 2px 0 var(--violet), -2px 0 var(--acid);
+    letter-spacing:3px;
+    text-align:center;
+    margin:0 0 4px 0;
+  }
+
+  /* ---- overlay screens ---- */
+  .screen{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:14px;
+    padding:24px;
+    text-align:center;
+    background:linear-gradient(180deg, rgba(11,10,16,0.96), rgba(20,18,32,0.98));
+    z-index:20;
+  }
+  .hidden{display:none !important;}
+
+  .subtext{color:var(--ink-dim); font-size:13px; max-width:340px; line-height:1.5;}
+
+  .btn{
+    font-family:'Courier New', monospace;
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:1px;
+    padding:13px 26px;
+    border-radius:3px;
+    border:2px solid var(--crimson);
+    background:transparent;
+    color:var(--ink);
+    cursor:pointer;
+    text-transform:uppercase;
+    transition:transform .08s ease, background .15s ease;
+  }
+  .btn:active{ transform:scale(0.94); }
+  .btn.primary{
+    background:var(--crimson);
+    color:#160608;
+    box-shadow:0 0 0 0 rgba(224,38,63,0.6);
+    animation:pulseBtn 1.8s infinite;
+  }
+  @keyframes pulseBtn{
+    0%{box-shadow:0 0 0 0 rgba(224,38,63,0.45);}
+    70%{box-shadow:0 0 0 14px rgba(224,38,63,0);}
+    100%{box-shadow:0 0 0 0 rgba(224,38,63,0);}
+  }
+  .btn.ghost{ border-color:var(--ink-dim); color:var(--ink-dim); font-size:12px; padding:9px 16px;}
+  .btn.acid{ border-color:var(--acid); color:var(--acid); }
+
+  .death-count{
+    position:absolute; top:10px; right:12px;
+    font-size:12px; color:var(--ink-dim);
+    background:rgba(0,0,0,0.4);
+    padding:4px 10px; border-radius:12px;
+    border:1px solid rgba(224,38,63,0.4);
+    z-index:15;
+  }
+  .level-tag{
+    position:absolute; top:10px; left:12px;
+    font-size:12px; color:var(--acid);
+    background:rgba(0,0,0,0.4);
+    padding:4px 10px; border-radius:12px;
+    border:1px solid rgba(61,255,160,0.35);
+    z-index:15;
+  }
+
+  .taunt{
+    position:absolute; top:44%; left:50%; transform:translate(-50%,-50%) scale(0.7);
+    font-size:clamp(16px,5vw,26px);
+    color:var(--crimson);
+    font-weight:900;
+    text-shadow:0 0 12px rgba(224,38,63,0.6);
+    opacity:0;
+    pointer-events:none;
+    z-index:18;
+    text-align:center;
+    white-space:nowrap;
+  }
+  .taunt.show{
+    animation:taunt-pop .9s ease forwards;
+  }
+  @keyframes taunt-pop{
+    0%{opacity:0; transform:translate(-50%,-50%) scale(0.5);}
+    15%{opacity:1; transform:translate(-50%,-50%) scale(1.08);}
+    30%{transform:translate(-50%,-50%) scale(1);}
+    80%{opacity:1;}
+    100%{opacity:0; transform:translate(-50%,-60%) scale(1);}
+  }
+
+  /* ---- controls ---- */
+  #controls{
+    position:absolute; left:0; right:0; bottom:0;
+    display:flex; justify-content:space-between; align-items:flex-end;
+    padding:16px; z-index:16;
+    pointer-events:none;
+  }
+  #controls .pad, #controls .jumpwrap{ pointer-events:auto; display:flex; gap:10px; }
+  .ctrl-btn{
+    width:60px; height:60px;
+    border-radius:50%;
+    background:rgba(20,18,32,0.65);
+    border:2px solid rgba(242,238,230,0.35);
+    color:var(--ink);
+    font-size:22px;
+    display:flex; align-items:center; justify-content:center;
+    backdrop-filter:blur(2px);
+  }
+  .ctrl-btn:active{ background:rgba(224,38,63,0.45); border-color:var(--crimson); }
+  .jumpwrap .ctrl-btn{ width:76px; height:76px; font-size:14px; font-weight:700; }
+
+  /* ---- win screen ---- */
+  .trophy{ font-size:54px; }
+  #winPhotoFrame{
+    width:220px; height:220px;
+    border:3px solid var(--acid);
+    border-radius:6px;
+    overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    background:#0d0c14;
+    box-shadow:0 0 24px rgba(61,255,160,0.25);
+  }
+  #winPhotoFrame img{ width:100%; height:100%; object-fit:cover; }
+  #winPhotoFrame .fallback{
+    font-size:12px; color:var(--ink-dim); padding:14px; line-height:1.5;
+  }
+
+  .confetti-piece{
+    position:absolute; top:-10px; width:8px; height:14px; opacity:0.9;
+    z-index:19; pointer-events:none;
+  }
+
+  @media (min-width:700px){
+    #wrap{ width:auto; }
+    canvas{ width:auto; height:88vh; }
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="game" width="800" height="450"></canvas>
+
+  <div class="death-count hidden" id="deathCount">deaths: 0</div>
+  <div class="level-tag hidden" id="levelTag">level 1 / 5</div>
+  <div class="taunt" id="taunt"></div>
+
+  <div id="controls" class="hidden">
+    <div class="pad">
+      <div class="ctrl-btn" id="btnLeft">◀</div>
+      <div class="ctrl-btn" id="btnRight">▶</div>
+    </div>
+    <div class="jumpwrap">
+      <div class="ctrl-btn" id="btnJump">JUMP</div>
+    </div>
+  </div>
+
+  <!-- START SCREEN -->
+  <div class="screen" id="startScreen">
+    <div class="glitch-title pixel">RAGE&nbsp;DEVIL</div>
+    <div class="subtext">
+      3 levels. Nothing is what it looks like. Floors lie, signs lie,
+      buttons lie. Trust nothing. Reach the flag anyway.
+    </div>
+    <div class="subtext" style="font-size:11px;">
+      Move: ◀ ▶ or A / D &nbsp;·&nbsp; Jump: JUMP / Space / ↑
+    </div>
+    <button class="btn primary" id="startBtn">START GAME</button>
+    <div class="subtext" style="font-size:11px; max-width:280px;">
+      Building this in Spck Editor? Drop these files next to
+      index.html: <b>winphoto.png</b> (win photo),
+      <b>level_devil_.mp3</b> (jump sound), and
+      <b>level_devil_3.mp3</b> (win sound) — they'll load automatically.
+    </div>
+  </div>
+
+  <!-- LEVEL COMPLETE SCREEN -->
+  <div class="screen hidden" id="levelCompleteScreen">
+    <div class="glitch-title pixel" style="font-size:26px;">LEVEL CLEAR</div>
+    <div class="subtext" id="levelCompleteSub"></div>
+    <button class="btn primary" id="nextLevelBtn">NEXT LEVEL</button>
+  </div>
+
+  <!-- WIN SCREEN -->
+  <div class="screen hidden" id="winScreen">
+    <div class="trophy">🏆</div>
+    <div class="glitch-title pixel" style="font-size:30px;">YOU SURVIVED</div>
+    <div class="subtext" id="winSub"></div>
+    <div id="winPhotoFrame">
+      <div class="fallback" id="winPhotoFallback">
+        no photo found —<br>add <b>winphoto.png</b><br>next to index.html
+      </div>
+      <img id="winPhotoImg" class="hidden" alt="victory photo">
+    </div>
+    <button class="btn ghost" id="restartBtn">PLAY AGAIN</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  const startScreen = document.getElementById('startScreen');
+  const levelCompleteScreen = document.getElementById('levelCompleteScreen');
+  const levelCompleteSub = document.getElementById('levelCompleteSub');
+  const winScreen = document.getElementById('winScreen');
+  const winSub = document.getElementById('winSub');
+  const deathCountEl = document.getElementById('deathCount');
+  const levelTagEl = document.getElementById('levelTag');
+  const taunt = document.getElementById('taunt');
+  const controlsEl = document.getElementById('controls');
+
+  // ---------- Optional win photo: drop "winphoto.png" next to this file ----------
+  const winPhotoImg = document.getElementById('winPhotoImg');
+  const winPhotoFallback = document.getElementById('winPhotoFallback');
+  (function tryLoadWinPhoto(){
+    const testImg = new Image();
+    testImg.onload = function(){
+      winPhotoImg.src = 'winphoto.png';
+      winPhotoImg.classList.remove('hidden');
+      winPhotoFallback.classList.add('hidden');
+    };
+    testImg.onerror = function(){
+      // no file present — fallback text stays visible
+    };
+    testImg.src = 'winphoto.png';
+  })();
+
+  // ---------- Audio: drop these mp3s next to this file ----------
+  // level_devil_.mp3   -> plays on every jump
+  // level_devil_3.mp3  -> plays on the win screen (alongside the photo)
+  const jumpSound = new Audio('level_devil_.mp3');
+  jumpSound.volume = 0.6;
+  const winSound = new Audio('level_devil_3.mp3');
+  winSound.volume = 0.8;
+
+  function playJumpSound(){
+    try{
+      jumpSound.currentTime = 0;
+      jumpSound.play().catch(()=>{});
+    }catch(e){}
+  }
+  function playWinSound(){
+    try{
+      winSound.currentTime = 0;
+      winSound.play().catch(()=>{});
+    }catch(e){}
+  }
+  // unlock audio on first touch/click (mobile browsers block autoplay
+  // until a user gesture happens)
+  let audioUnlocked = false;
+  function unlockAudio(){
+    if(audioUnlocked) return;
+    audioUnlocked = true;
+    [jumpSound, winSound].forEach(a=>{
+      a.play().then(()=>{ a.pause(); a.currentTime = 0; }).catch(()=>{});
+    });
+  }
+  window.addEventListener('touchstart', unlockAudio, {once:true});
+  window.addEventListener('mousedown', unlockAudio, {once:true});
+  window.addEventListener('keydown', unlockAudio, {once:true});
+
+  // ---------- input ----------
+  const keys = { left:false, right:false, jump:false };
+  window.addEventListener('keydown', e=>{
+    if(['ArrowLeft','a','A'].includes(e.key)) keys.left = true;
+    if(['ArrowRight','d','D'].includes(e.key)) keys.right = true;
+    if(['ArrowUp','w','W',' '].includes(e.key)){ keys.jump = true; e.preventDefault(); }
+  });
+  window.addEventListener('keyup', e=>{
+    if(['ArrowLeft','a','A'].includes(e.key)) keys.left = false;
+    if(['ArrowRight','d','D'].includes(e.key)) keys.right = false;
+    if(['ArrowUp','w','W',' '].includes(e.key)) keys.jump = false;
+  });
+  function bindHold(id, setter){
+    const el = document.getElementById(id);
+    const on = e=>{ setter(true); e.preventDefault(); };
+    const off = e=>{ setter(false); };
+    el.addEventListener('touchstart', on, {passive:false});
+    el.addEventListener('touchend', off);
+    el.addEventListener('touchcancel', off);
+    el.addEventListener('mousedown', on);
+    el.addEventListener('mouseup', off);
+    el.addEventListener('mouseleave', off);
+  }
+  bindHold('btnLeft', v=>keys.left=v);
+  bindHold('btnRight', v=>keys.right=v);
+  bindHold('btnJump', v=>keys.jump=v);
+
+  // ---------- taunts ----------
+  const TAUNTS = [
+    "REKT.", "the floor was NEVER your friend", "nice try lol",
+    "that sign was lying btw", "should've known", "again.",
+    "the button betrayed you", "gravity says hi", "so close. not really.",
+    "trust issues incoming"
+  ];
+  function showTaunt(){
+    taunt.textContent = TAUNTS[Math.floor(Math.random()*TAUNTS.length)];
+    taunt.classList.remove('show');
+    void taunt.offsetWidth;
+    taunt.classList.add('show');
+  }
+
+  // ---------- world constants ----------
+  const GRAVITY = 1900;
+  const MOVE_SPEED = 250;
+  const JUMP_VEL = -680;
+  const GROUND_Y = 390;
+
+  // colors
+  const COL_PLATFORM = '#2c2740';
+  const COL_PLATFORM_EDGE = '#463c66';
+  const COL_TRAP_PLATFORM = '#3a2b3a';
+  const COL_SPIKE = '#e0263f';
+  const COL_GOAL = '#3dffa0';
+  const COL_FAKE_GOAL = '#7c4dff';
+  const COL_SIGN = '#ffb020';
+  const COL_BUTTON = '#ffb020';
+
+  let deaths = 0;
+  let currentLevel = 0;
+  let player, camX, state;
+
+  function makePlayer(x,y){
+    return { x, y, w:26, h:34, vx:0, vy:0, onGround:false, dead:false, spawnX:x, spawnY:y };
+  }
+
+  // ---------- LEVEL DEFINITIONS ----------
+  // platforms: {x,y,w,h, trap:'collapse'|'vanish'|null, delay(ms)}
+  // spikes: {x,y,w,h, timed:bool, triggerX, armDelay, armed}
+  // signs: {x,y,text,lie:bool}  -- purely visual misdirection
+  // buttons: {x,y,w,h, fake:bool} -- fake launches you into a spike ceiling
+  // goal: {x,y,w,h, fake:bool}
+  function buildLevels(){
+    return [
+      // ---------------- LEVEL 1 ----------------
+      {
+        width: 2600,
+        spawn: {x:60, y:GROUND_Y-34},
+        platforms: [
+          {x:0,y:GROUND_Y,w:420,h:60},
+          {x:420,y:GROUND_Y,w:150,h:60, trap:'collapse', delay:380},
+          {x:660,y:GROUND_Y,w:260,h:60},
+          {x:1010,y:GROUND_Y,w:120,h:60, trap:'collapse', delay:300},
+          {x:1230,y:300,w:160,h:24},
+          {x:1230,y:GROUND_Y,w:160,h:60},
+          {x:1500,y:GROUND_Y,w:420,h:60},
+          {x:2010,y:GROUND_Y,w:120,h:60, trap:'collapse', delay:280},
+          {x:2230,y:GROUND_Y,w:370,h:60},
+        ],
+        spikes: [
+          {x:1240,y:GROUND_Y-18,w:130,h:18}, // under the "bonus" sign jump
+        ],
+        signs: [
+          {x:1180,y:GROUND_Y-90,text:"JUMP FOR BONUS ➜", lie:true},
+        ],
+        buttons: [],
+        goal: {x:2520,y:GROUND_Y-70,w:44,h:70, fake:false}
+      },
+      // ---------------- LEVEL 2 ----------------
+      {
+        width: 2800,
+        spawn: {x:60, y:GROUND_Y-34},
+        platforms: [
+          {x:0,y:GROUND_Y,w:340,h:60},
+          {x:340,y:GROUND_Y,w:160,h:60},
+          {x:600,y:GROUND_Y,w:180,h:60, trap:'vanish', delay:260},
+          {x:880,y:GROUND_Y,w:520,h:60},
+          {x:1500,y:GROUND_Y,w:150,h:60},
+          {x:1750,y:GROUND_Y,w:180,h:60, trap:'vanish', delay:300},
+          {x:2030,y:GROUND_Y,w:770,h:60},
+        ],
+        spikes: [
+          {x:2080,y:60,w:40,h:24, ceiling:true}, // above fake button launch zone
+          {x:2120,y:60,w:40,h:24, ceiling:true},
+          {x:2160,y:60,w:40,h:24, ceiling:true},
+        ],
+        signs: [
+          {x:1980,y:GROUND_Y-90,text:"FREE BOOST ➜", lie:true},
+        ],
+        buttons: [
+          {x:2070,y:GROUND_Y-22,w:70,h:22, fake:true}
+        ],
+        goal: {x:2700,y:GROUND_Y-70,w:44,h:70, fake:false}
+      },
+      // ---------------- LEVEL 3 ----------------
+      {
+        width: 3000,
+        spawn: {x:60, y:GROUND_Y-34},
+        platforms: [
+          {x:0,y:GROUND_Y,w:300,h:60},
+          {x:300,y:GROUND_Y,w:900,h:60},
+          {x:1300,y:GROUND_Y,w:700,h:60},
+          {x:2100,y:GROUND_Y,w:900,h:60},
+        ],
+        spikes: [
+          {x:520,y:GROUND_Y-18,w:60,h:18, timed:true, triggerX:600, armDelay:260},
+          {x:760,y:GROUND_Y-18,w:60,h:18, timed:true, triggerX:840, armDelay:260},
+          {x:1480,y:GROUND_Y-18,w:70,h:18, timed:true, triggerX:1560, armDelay:220},
+          {x:2300,y:GROUND_Y-18,w:80,h:18, timed:true, triggerX:2380, armDelay:200},
+          {x:2560,y:GROUND_Y-18,w:80,h:18, timed:true, triggerX:2640, armDelay:180},
+        ],
+        signs: [
+          {x:260,y:GROUND_Y-90,text:"SAFE PATH ➜ KEEP RUNNING", lie:true},
+          {x:1900,y:GROUND_Y-90,text:"ALMOST THERE, DON'T STOP", lie:true},
+        ],
+        buttons: [],
+        goal: {x:2900,y:GROUND_Y-70,w:44,h:70, fake:false}
+      },
+    ];
+  }
+
+  const LEVELS = buildLevels();
+  let levelRuntime; // mutable per-attempt state (trap timers etc.)
+
+  function resetLevelRuntime(lvl){
+    levelRuntime = {
+      platforms: lvl.platforms.map(p=>({...p, standing:false, standTimer:0, gone:false})),
+      spikes: lvl.spikes.map(s=>({...s, armed: !s.timed, triggered:false, poppedAt:0})),
+    };
+  }
+
+  function loadLevel(idx){
+    currentLevel = idx;
+    const lvl = LEVELS[idx];
+    resetLevelRuntime(lvl);
+    player = makePlayer(lvl.spawn.x, lvl.spawn.y);
+    camX = 0;
+    levelTagEl.textContent = `level ${idx+1} / ${LEVELS.length}`;
+  }
+
+  function respawn(){
+    const lvl = LEVELS[currentLevel];
+    resetLevelRuntime(lvl);
+    player.x = lvl.spawn.x;
+    player.y = lvl.spawn.y;
+    player.vx = 0; player.vy = 0;
+    player.dead = false;
+  }
+
+  function die(){
+    if(player.dead) return;
+    player.dead = true;
+    deaths++;
+    deathCountEl.textContent = `deaths: ${deaths}`;
+    showTaunt();
+    setTimeout(respawn, 550);
+  }
+
+  // ---------- collision helpers ----------
+  function rectsOverlap(a,b){
+    return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;
+  }
+
+  function update(dt){
+    if(state !== 'playing') return;
+    const lvl = LEVELS[currentLevel];
+    const rt = levelRuntime;
+
+    if(!player.dead){
+      // horizontal input
+      player.vx = 0;
+      if(keys.left) player.vx = -MOVE_SPEED;
+      if(keys.right) player.vx = MOVE_SPEED;
+
+      if(keys.jump && player.onGround){
+        player.vy = JUMP_VEL;
+        player.onGround = false;
+        playJumpSound();
+      }
+
+      // gravity
+      player.vy += GRAVITY*dt;
+      if(player.vy > 1400) player.vy = 1400;
+
+      // move x, resolve
+      player.x += player.vx*dt;
+      player.onGround = false;
+
+      for(const p of rt.platforms){
+        if(p.gone) continue;
+        const box = {x:p.x,y:p.y,w:p.w,h:p.h};
+        if(rectsOverlap(player,box)){
+          if(player.vx > 0) player.x = box.x - player.w;
+          else if(player.vx < 0) player.x = box.x + box.w;
+        }
+      }
+
+      // move y, resolve
+      player.y += player.vy*dt;
+      for(const p of rt.platforms){
+        if(p.gone) continue;
+        const box = {x:p.x,y:p.y,w:p.w,h:p.h};
+        if(rectsOverlap(player,box)){
+          if(player.vy > 0){
+            player.y = box.y - player.h;
+            player.vy = 0;
+            player.onGround = true;
+            handlePlatformStand(p, dt);
+          } else if(player.vy < 0){
+            player.y = box.y + box.h;
+            player.vy = 0;
+          }
+        }
+      }
+
+      // decay stand timers for platforms player left
+      for(const p of rt.platforms){
+        if(!p.gone && p.trap && p.standing){
+          const box = {x:p.x,y:p.y,w:p.w,h:p.h};
+          const stillOn = player.onGround && rectsOverlap(player, {x:box.x,y:box.y-2,w:box.w,h:box.h+4});
+          if(!stillOn){ p.standing = false; p.standTimer = 0; }
+        }
+      }
+
+      // fell off world
+      if(player.y > H+100){ die(); }
+
+      // spikes
+      for(const s of rt.spikes){
+        if(s.timed && !s.armed && !s.triggered && player.x+player.w > s.triggerX){
+          s.triggered = true;
+          setTimeout(()=>{ s.armed = true; }, s.armDelay);
+        }
+        if(s.armed){
+          const box = {x:s.x,y:s.y,w:s.w,h:s.h};
+          if(rectsOverlap(player, box)) die();
+        }
+      }
+
+      // fake button
+      for(const b of (lvl.buttons||[])){
+        const box = {x:b.x,y:b.y,w:b.w,h:b.h};
+        if(rectsOverlap(player, box) && player.onGround){
+          player.vy = -1000; // launch upward hard into ceiling spikes
+          player.onGround = false;
+        }
+      }
+
+      // fake goal -> trapdoor
+      if(lvl.fakeGoal){
+        const box = lvl.fakeGoal;
+        if(rectsOverlap(player, box)){
+          // remove platform under player
+          for(const p of rt.platforms){
+            if(!p.gone && player.x+player.w > p.x && player.x < p.x+p.w && Math.abs((player.y+player.h)-p.y) < 40){
+              p.gone = true;
+            }
+          }
+        }
+      }
+
+      // real goal
+      const g = lvl.goal;
+      if(rectsOverlap(player, g)){
+        onLevelComplete();
+      }
+
+      // clamp to level bounds (left side)
+      if(player.x < 0) player.x = 0;
+    }
+
+    // camera
+    const targetCam = Math.max(0, Math.min(player.x - W/2, lvl.width - W));
+    camX += (targetCam - camX) * Math.min(1, dt*6);
+  }
+
+  function handlePlatformStand(p, dt){
+    if(!p.trap) return;
+    if(!p.standing){ p.standing = true; p.standTimer = 0; }
+    p.standTimer += dt*1000;
+    if(p.standTimer >= p.delay){
+      p.gone = true;
+    }
+  }
+
+  function onLevelComplete(){
+    state = 'levelcomplete';
+    controlsEl.classList.add('hidden');
+    if(currentLevel < LEVELS.length-1){
+      levelCompleteSub.textContent = `You made it through level ${currentLevel+1}. It gets worse.`;
+      levelCompleteScreen.classList.remove('hidden');
+    } else {
+      winSub.textContent = `${deaths} death${deaths===1?'':'s'}. All 3 levels. Respect.`;
+      winScreen.classList.remove('hidden');
+      launchConfetti();
+      playWinSound();
+    }
+  }
+
+  // ---------- rendering ----------
+  function drawBackgroundParallax(){
+    ctx.fillStyle = '#141220';
+    ctx.fillRect(0,0,W,H);
+    // distant hills
+    ctx.fillStyle = '#1c1830';
+    const hillOffset = -(camX*0.15)%400;
+    for(let i=-1;i<4;i++){
+      const bx = hillOffset + i*400;
+      ctx.beginPath();
+      ctx.moveTo(bx,H);
+      ctx.quadraticCurveTo(bx+200, H-120, bx+400, H);
+      ctx.fill();
+    }
+    // stars/dust
+    ctx.fillStyle = 'rgba(124,77,255,0.5)';
+    for(let i=0;i<28;i++){
+      const sx = (i*97 - camX*0.4) % (W+200);
+      const sy = (i*53) % 200 + 10;
+      ctx.fillRect(((sx%(W+200))+W+200)%(W+200)-100, sy, 2, 2);
+    }
+  }
+
+  function drawPlatform(p){
+    if(p.gone) return;
+    const sx = p.x - camX;
+    if(sx+p.w < -20 || sx > W+20) return;
+    ctx.fillStyle = p.trap ? COL_TRAP_PLATFORM : COL_PLATFORM;
+    ctx.fillRect(sx, p.y, p.w, p.h);
+    ctx.fillStyle = COL_PLATFORM_EDGE;
+    ctx.fillRect(sx, p.y, p.w, 4);
+    if(p.trap && p.standing){
+      const pct = Math.min(1, p.standTimer/p.delay);
+      ctx.fillStyle = `rgba(224,38,63,${0.15+pct*0.5})`;
+      ctx.fillRect(sx, p.y, p.w, p.h);
+      // crack lines
+      ctx.strokeStyle = `rgba(224,38,63,${0.4+pct*0.6})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(sx+p.w*0.3, p.y);
+      ctx.lineTo(sx+p.w*0.45, p.y+p.h*0.6);
+      ctx.moveTo(sx+p.w*0.7, p.y);
+      ctx.lineTo(sx+p.w*0.55, p.y+p.h*0.5);
+      ctx.stroke();
+    }
+  }
+
+  function drawSpike(s){
+    const sx = s.x - camX;
+    if(sx+s.w < -20 || sx > W+20) return;
+    if(s.timed && !s.armed){
+      // faint outline warning where it WILL appear (subtle, part of the trick)
+      ctx.strokeStyle = 'rgba(224,38,63,0.15)';
+      ctx.setLineDash([3,3]);
+      ctx.strokeRect(sx, s.y, s.w, s.h);
+      ctx.setLineDash([]);
+      return;
+    }
+    ctx.fillStyle = COL_SPIKE;
+    const n = Math.max(1, Math.floor(s.w/16));
+    const tw = s.w/n;
+    for(let i=0;i<n;i++){
+      ctx.beginPath();
+      if(s.ceiling){
+        ctx.moveTo(sx+i*tw, s.y);
+        ctx.lineTo(sx+i*tw+tw/2, s.y+s.h);
+        ctx.lineTo(sx+i*tw+tw, s.y);
+      } else {
+        ctx.moveTo(sx+i*tw, s.y+s.h);
+        ctx.lineTo(sx+i*tw+tw/2, s.y);
+        ctx.lineTo(sx+i*tw+tw, s.y+s.h);
+      }
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  function drawSign(s){
+    const sx = s.x - camX;
+    if(sx < -160 || sx > W+20) return;
+    ctx.save();
+    ctx.translate(sx, s.y);
+    ctx.fillStyle = '#5a4326';
+    ctx.fillRect(6, 20, 6, 40);
+    ctx.fillStyle = COL_SIGN;
+    ctx.fillRect(0,0,120,34);
+    ctx.strokeStyle = '#3a2a10';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(0,0,120,34);
+    ctx.fillStyle = '#241505';
+    ctx.font = 'bold 9px monospace';
+    wrapText(s.text, 6, 13, 108, 10);
+    ctx.restore();
+  }
+
+  function wrapText(text,x,y,maxWidth,lineHeight){
+    const words = text.split(' ');
+    let line = '';
+    let cy = y;
+    for(let n=0;n<words.length;n++){
+      const test = line + words[n] + ' ';
+      if(ctx.measureText(test).width > maxWidth && n>0){
+        ctx.fillText(line, x, cy);
+        line = words[n] + ' ';
+        cy += lineHeight;
+      } else {
+        line = test;
+      }
+    }
+    ctx.fillText(line, x, cy);
+  }
+
+  function drawButton(b){
+    const sx = b.x - camX;
+    if(sx+b.w < -20 || sx > W+20) return;
+    ctx.fillStyle = '#7a4b12';
+    ctx.fillRect(sx, b.y+b.h-4, b.w, 8);
+    ctx.fillStyle = COL_BUTTON;
+    ctx.beginPath();
+    ctx.ellipse(sx+b.w/2, b.y+b.h/2, b.w/2, b.h/2, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#241505';
+    ctx.font = 'bold 8px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('BOOST', sx+b.w/2, b.y+b.h/2+3);
+    ctx.textAlign = 'left';
+  }
+
+  function drawGoal(g, fake){
+    const sx = g.x - camX;
+    if(sx+g.w < -20 || sx > W+20) return;
+    ctx.fillStyle = '#6b5a30';
+    ctx.fillRect(sx, g.y, 5, g.h);
+    ctx.fillStyle = fake ? COL_FAKE_GOAL : COL_GOAL;
+    ctx.beginPath();
+    ctx.moveTo(sx+5, g.y);
+    ctx.lineTo(sx+g.w, g.y+10);
+    ctx.lineTo(sx+5, g.y+20);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawPlayer(){
+    const sx = player.x - camX;
+    ctx.fillStyle = player.dead ? '#3a3a3a' : '#f2eee6';
+    ctx.fillRect(sx, player.y, player.w, player.h);
+    ctx.fillStyle = '#e0263f';
+    ctx.fillRect(sx, player.y, player.w, 6);
+    // eyes
+    ctx.fillStyle = '#141220';
+    if(!player.dead){
+      const dir = player.vx < 0 ? -1 : 1;
+      ctx.fillRect(sx+(dir>0?16:4), player.y+12, 5, 5);
+    }
+  }
+
+  function render(){
+    drawBackgroundParallax();
+    if(state === 'playing' || state === 'levelcomplete'){
+      const lvl = LEVELS[currentLevel];
+      const rt = levelRuntime;
+      for(const s of lvl.signs||[]) drawSign(s);
+      for(const b of lvl.buttons||[]) drawButton(b);
+      if(lvl.fakeGoal) drawGoal(lvl.fakeGoal, true);
+      drawGoal(lvl.goal, false);
+      for(const p of rt.platforms) drawPlatform(p);
+      for(const s of rt.spikes) drawSpike(s);
+      if(player) drawPlayer();
+    }
+  }
+
+  let lastTime = performance.now();
+  function loop(now){
+    const dt = Math.min(0.033, (now-lastTime)/1000);
+    lastTime = now;
+    update(dt);
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  // ---------- confetti ----------
+  function launchConfetti(){
+    const colors = ['#e0263f','#7c4dff','#3dffa0','#ffb020','#f2eee6'];
+    for(let i=0;i<60;i++){
+      setTimeout(()=>{
+        const el = document.createElement('div');
+        el.className = 'confetti-piece';
+        el.style.left = Math.random()*100+'vw';
+        el.style.background = colors[Math.floor(Math.random()*colors.length)];
+        el.style.transform = `rotate(${Math.random()*360}deg)`;
+        el.style.animation = `confettiFall ${1.6+Math.random()*1.4}s linear forwards`;
+        document.getElementById('wrap').appendChild(el);
+        setTimeout(()=>el.remove(), 3200);
+      }, i*30);
+    }
+  }
+  const styleSheet = document.createElement('style');
+  styleSheet.textContent = `@keyframes confettiFall{
+    to{ transform:translateY(110vh) rotate(540deg); opacity:0.3; }
+  }`;
+  document.head.appendChild(styleSheet);
+
+  // ---------- screen flow ----------
+  document.getElementById('startBtn').addEventListener('click', ()=>{
+    startScreen.classList.add('hidden');
+    deathCountEl.classList.remove('hidden');
+    levelTagEl.classList.remove('hidden');
+    controlsEl.classList.remove('hidden');
+    deaths = 0;
+    deathCountEl.textContent = 'deaths: 0';
+    loadLevel(0);
+    state = 'playing';
+  });
+
+  document.getElementById('nextLevelBtn').addEventListener('click', ()=>{
+    levelCompleteScreen.classList.add('hidden');
+    controlsEl.classList.remove('hidden');
+    loadLevel(currentLevel+1);
+    state = 'playing';
+  });
+
+  document.getElementById('restartBtn').addEventListener('click', ()=>{
+    winScreen.classList.add('hidden');
+    deaths = 0;
+    deathCountEl.textContent = 'deaths: 0';
+    loadLevel(0);
+    controlsEl.classList.remove('hidden');
+    state = 'playing';
+  });
+
+  state = 'menu';
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
